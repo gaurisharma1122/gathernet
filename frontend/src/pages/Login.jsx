@@ -20,7 +20,7 @@ const Login = () => {
                                   <button type='submit' className='block w-full bg-blue-600 py-2 px-4 text-md font-semibold text-white rounded-md hover:bg-blue-400'>Submit</button>
                               </form>
                               <p className='text-center text-md  my-4'>
-                                  New here? <span className=' font-bold hover:text-blue-600 hover:cursor-pointer' onClick={()=>setIsLogin(false)}>Create and account</span>
+                                  New here? <span className=' font-bold hover:text-blue-600 hover:cursor-pointer' onClick={()=>setIsLogin(false)}>Create an account</span>
                               </p>
                           </div> :
                           <div className='w-[30rem]'>
