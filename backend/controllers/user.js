@@ -45,7 +45,7 @@ const login = async (req, res) => {
                 message: 'Please enter all required fields: Email and Password'
             });
         }
-        const user = await User.findOne({ email });
+        const user = await User.findOne({ email }).select('+password');
         if (!user) {
             res.status(411).json({
                 success: true,
@@ -96,4 +96,106 @@ const logout = (req, res) => {
     }
 }
 
-module.exports = { signup, login, logout };
+const getMyProfile = (req, res) => {
+    try {
+        res.status(200).json({
+            success: true,
+            user: req.user
+        });
+    } catch (error) {
+        console.log(error.message);
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+}
+
+const getUserProfile = async (req, res) => {
+    try {
+        const userId = req.params.id;
+        const user = await User.findById(userId);
+        if (!user) {
+            res.status(411).json({
+                success: false,
+                message: "User does not exist"
+            });
+        }
+        res.status(200).json({
+            success: true,
+            message: "User profile found",
+            user
+        });
+    } catch (error) {
+        console.log(error.message);
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+}
+
+const getAllOtherUsers = async (req, res) => {
+    try {
+        const user = req.user;
+        const otherUsers = await User.find({ _id: { $ne: user._id } });
+        if (!otherUsers) {
+            res.status(411).json({
+                success: false,
+                message: "No user found"
+            });
+        }
+        res.status(200).json({
+            success: true,
+            users: otherUsers
+        });
+    } catch (error) {
+        console.log(error.message);
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+}
+
+const followOrUnfollowUser = async (req, res) => {
+    try {
+        const userToBeFollowed = await User.findById(req.params.id);
+        const user = req.user;
+        if (!userToBeFollowed) {
+            res.status(411).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+        if (user.following.includes(userToBeFollowed._id)) {
+            //unfollow
+            user.following.splice(user.following.indexOf(userToBeFollowed._id), 1);
+            userToBeFollowed.followers.splice(userToBeFollowed.followers.indexOf(user._id), 1);
+            await user.save();
+            await userToBeFollowed.save();
+            res.status(200).json({
+                success: true,
+                message: "User unfollowed successfully"
+            });
+        } else {
+            //follow
+            user.following.push(userToBeFollowed._id);
+            userToBeFollowed.followers.push(user._id);
+            await user.save();
+            await userToBeFollowed.save();
+            res.status(200).json({
+                success: true,
+                message: "User followed successfully"
+            });
+        }
+
+    } catch (error) {
+        console.log(error.message);
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+}
+module.exports = { signup, login, logout, getMyProfile, getUserProfile, getAllOtherUsers, followOrUnfollowUser };
